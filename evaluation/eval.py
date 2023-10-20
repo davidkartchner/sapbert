@@ -20,7 +20,33 @@ from src.data_loader import (
 from src.model_wrapper import (
     Model_Wrapper
 )
-LOGGER = logging.getLogger()
+
+def parse_args_bigbio():
+    """
+    Parse input arguments
+    """
+    parser = argparse.ArgumentParser(description='sapbert evaluation')
+
+    # Required
+    parser.add_argument('--model_dir', required=True, help='Directory for model')
+    parser.add_argument('--dictionary_path', type=str, required=True, help='dictionary path')
+    parser.add_argument('--dataset_name', type=str, required=True, choices=['medmentions_full', 'medmentions_st21pv', 'bc5cdr'], help='data set to evaluate')
+
+    # Run settings
+    parser.add_argument('--use_cuda',  action="store_true")
+    parser.add_argument('--output_dir', type=str, default='./output/', help='Directory for output')
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--topk', type=int, default=50)
+
+    # Tokenizer settings
+    parser.add_argument('--max_length', default=25, type=int)
+    
+    # Classification settings
+    parser.add_argument('--agg_mode', type=str, default="cls", help="{cls|mean_pool|nospec}")
+
+    args = parser.parse_args()
+    return args
+
 
 def parse_args():
     """
@@ -44,7 +70,7 @@ def parse_args():
     parser.add_argument('--max_length', default=25, type=int)
     
     # options for COMETA
-    parser.add_argument('--cometa', action="store_true", \
+    parser.add_argument('--cometa', action="store_true",
             help="whether to load full sentence from COMETA (or just use the mention)")
     parser.add_argument('--medmentions', action="store_true")
     parser.add_argument('--custom_query_loader', action="store_true")
@@ -73,7 +99,7 @@ def load_queries(data_dir, filter_composite, filter_duplicate):
     dataset = QueryDataset(
         data_dir=data_dir,
         filter_composite=filter_composite,
-        filter_duplicate=filter_duplicate
+        filter_duplicate=filter_duplicate,
     )
     return dataset.data
 
@@ -109,6 +135,8 @@ def main(args):
                 )
         eval_queries = dataset.data
         print ("[custom queries loaded]")
+
+    
     else:
         eval_queries = load_queries(
             data_dir=args.data_dir,
