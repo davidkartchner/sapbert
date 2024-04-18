@@ -2,7 +2,7 @@ PATH_TO_TRAIN_FILE=$2
 OUTPUT_DIR=$3
 
 CUDA_VISIBLE_DEVICES=$1 python3 train.py \
-	--model_dir "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext" \
+	--model_dir "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext" \
 	--train_dir $PATH_TO_TRAIN_FILE \
 	--output_dir $OUTPUT_DIR\
 	--use_cuda \

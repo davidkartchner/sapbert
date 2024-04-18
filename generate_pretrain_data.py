@@ -38,7 +38,13 @@ def read_examples(filepath):
     # Construct dict mapping each CURIE to a list of aliases
     umls_dict = {}
     for line in tqdm(lines):
-        cui, name = line.split("||")
+        if line.strip() == "":
+            continue
+        try:
+            cui, name = line.split("||")
+        except:
+            print(f"{line=}")
+            continue
         name = name.lower()
         if cui in umls_dict:
             umls_dict[cui].add(name)

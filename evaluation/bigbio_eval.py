@@ -37,8 +37,14 @@ def parse_args_bigbio():
             "nlm_gene",
             "gnormplus",
             "ncbi_disease",
+            "sourcedata_nlp",
         ],
         help="data set to evaluate",
+    )
+    parser.add_argument(
+        "--data_type",
+        type=str,
+        help="If provided, limit evaluation to entries matching provided type",
     )
     parser.add_argument("--dict_cache_path", type=str)
 
@@ -109,8 +115,9 @@ def sapbert_predict(
     Make predictions for SapBERT given a particular dict of medical concepts
     """
     # # Quick test of dataloader
-    # for i, dat in enumerate(dataloader):
-    #     print(ujson.dumps(dat))
+    for i, dat in enumerate(tqdm(dataloader)):
+        pass
+        # print(ujson.dumps(dat))
 
     print("[start embedding dictionary...]")
     # embed dictionary

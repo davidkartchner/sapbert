@@ -7,6 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 from bigbio.dataloader import BigBioConfigHelpers
 from typing import List, Optional
 
+warnings.filterwarnings("ignore")
+
 sys.path.append("..")
 from bigbio_utils import (
     dataset_to_df,
@@ -20,10 +22,11 @@ from bigbio_utils import (
 class SapBertBigBioDataset(Dataset):
     def __init__(
         self,
-        dataset_name: str = "medmentions_st21pv",
+        dataset_name: str = "sourcedata_nlp",
         splits_to_include: List[str] = ["train"],
         resolve_abbreviations: bool = True,
         path_to_abbreviation_dict: Optional[str] = None,
+        data_type: Optional[str] = None,
     ):
         """
         Load initial BigBio dataset
@@ -34,14 +37,21 @@ class SapBertBigBioDataset(Dataset):
             dataset_name + "_bigbio_kb"
         ).load_dataset(from_hub=False)
         self.splits_to_include = splits_to_include
+        self.data_type = data_type
 
         # Resolve abbreviations if desired
         self.resolve_abbreviations = resolve_abbreviations
         if self.resolve_abbreviations:
             self.abbreviations = ujson.load(open(path_to_abbreviation_dict, "r"))
 
-        self.cuis_to_exclude = CUIS_TO_EXCLUDE[dataset_name]
-        self.cuis_to_remap = CUIS_TO_REMAP[dataset_name]
+        if dataset_name in CUIS_TO_EXCLUDE:
+            self.cuis_to_exclude = CUIS_TO_EXCLUDE[dataset_name]
+        else:
+            self.cuis_to_exclude = []
+        if dataset_name in CUIS_TO_REMAP:
+            self.cuis_to_remap = CUIS_TO_REMAP[dataset_name]
+        else:
+            self.cuis_to_remap = []
 
         # Put examples into list for retrieval
         self._data_to_flat_instances()
@@ -131,6 +141,15 @@ class SapBertBigBioDataset(Dataset):
             entity_remapping_dict=self.cuis_to_remap,
             cuis_to_exclude=self.cuis_to_exclude,
         )
+
+        if self.data_type is not None:
+            # print(df.columns)
+            # print(df.head())
+            df.to_pickle("debug/soda.pickle")
+            mask = df["type"].map(lambda x: self.data_type in x)
+            # print(mask.sum())
+            df = df[mask]
+
         if self.resolve_abbreviations:
             df["text"] = df[["document_id", "text"]].apply(
                 lambda x: resolve_abbreviation(x[0], x[1], self.abbreviations), axis=1
@@ -155,9 +174,15 @@ def sapbert_collate_fn(batch):
 
 if __name__ == "__main__":
     dataset = SapBertBigBioDataset(
-        path_to_abbreviation_dict="../data/abbreviations.json"
+        resolve_abbreviations=False,
+        # path_to_abbreviation_dict="../data/abbreviations.json"
+        data_type="CELL_TYPE",
+        # splits_to_include=['validation']
     )
     dataloader = DataLoader(dataset, collate_fn=sapbert_collate_fn, batch_size=64)
     for i, batch in enumerate(tqdm(dataloader)):
         if i < 3:
-            print(batch)
+            # print(batch)
+            pass
+        else:
+            pass

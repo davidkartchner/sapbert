@@ -39,8 +39,12 @@ def main(args):
         splits_to_include=[args.split],
         path_to_abbreviation_dict=args.abbreviations_path,
         resolve_abbreviations=resolve_abbreviations,
+        data_type=args.data_type
     )
+    LOGGER.info(f"{len(data)=}")
     loader = DataLoader(data, collate_fn=sapbert_collate_fn, batch_size=args.batch_size)
+    LOGGER.info(f"{len(loader)=}")
+    # DataLoader(dataset, collate_fn=sapbert_collate_fn, batch_size=64)
 
     # Load Model
     model_wrapper = Model_Wrapper().load_model(
